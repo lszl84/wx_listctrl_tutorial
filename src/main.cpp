@@ -1,68 +1,65 @@
-// wxWidgets "Hello world" Program
-// For compilers that support precompilation, includes "wx/wx.h".
-#include <wx/wxprec.h>
-#ifndef WX_PRECOMP
+
 #include <wx/wx.h>
-#endif
+#include <wx/listctrl.h>
+
+#include <string>
+#include <vector>
+
 class MyApp : public wxApp
 {
 public:
     virtual bool OnInit();
 };
+
 class MyFrame : public wxFrame
 {
 public:
     MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size);
 
 private:
-    void OnHello(wxCommandEvent &event);
-    void OnExit(wxCommandEvent &event);
-    void OnAbout(wxCommandEvent &event);
-    wxDECLARE_EVENT_TABLE();
+    wxListView *basicListView;
+    void populateListView();
 };
-enum
-{
-    ID_Hello = 1
-};
-wxBEGIN_EVENT_TABLE(MyFrame, wxFrame)
-    EVT_MENU(ID_Hello, MyFrame::OnHello)
-        EVT_MENU(wxID_EXIT, MyFrame::OnExit)
-            EVT_MENU(wxID_ABOUT, MyFrame::OnAbout)
-                wxEND_EVENT_TABLE()
-                    wxIMPLEMENT_APP(MyApp);
+
 bool MyApp::OnInit()
 {
-    MyFrame *frame = new MyFrame("Hello World", wxPoint(50, 50), wxSize(450, 340));
+    MyFrame *frame = new MyFrame("Hello World", wxPoint(50, 50), wxSize(800, 600));
     frame->Show(true);
     return true;
 }
+
+wxIMPLEMENT_APP(MyApp);
+
 MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
     : wxFrame(NULL, wxID_ANY, title, pos, size)
 {
-    wxMenu *menuFile = new wxMenu;
-    menuFile->Append(ID_Hello, "&Hello...\tCtrl-H",
-                     "Help string shown in status bar for this menu item");
-    menuFile->AppendSeparator();
-    menuFile->Append(wxID_EXIT);
-    wxMenu *menuHelp = new wxMenu;
-    menuHelp->Append(wxID_ABOUT);
-    wxMenuBar *menuBar = new wxMenuBar;
-    menuBar->Append(menuFile, "&File");
-    menuBar->Append(menuHelp, "&Help");
-    SetMenuBar(menuBar);
-    CreateStatusBar();
-    SetStatusText("Welcome to wxWidgets!");
+    wxPanel *panel = new wxPanel(this);
+    basicListView = new wxListView(panel);
+    basicListView->AppendColumn("ID");
+    basicListView->AppendColumn("Name");
+    basicListView->AppendColumn("Description");
+    basicListView->SetColumnWidth(0, 80);
+    basicListView->SetColumnWidth(1, 120);
+    basicListView->SetColumnWidth(2, 600);
+
+    auto sizer = new wxBoxSizer(wxVERTICAL);
+    sizer->Add(basicListView, 1, wxALL | wxEXPAND, 0);
+    panel->SetSizerAndFit(sizer);
+
+    populateListView();
 }
-void MyFrame::OnExit(wxCommandEvent &event)
+
+void MyFrame::populateListView()
 {
-    Close(true);
-}
-void MyFrame::OnAbout(wxCommandEvent &event)
-{
-    wxMessageBox("This is a wxWidgets' Hello world sample",
-                 "About Hello World", wxOK | wxICON_INFORMATION);
-}
-void MyFrame::OnHello(wxCommandEvent &event)
-{
-    wxLogMessage("Hello world from wxWidgets!");
+    basicListView->InsertItem(0, "123");
+    basicListView->SetItem(0, 1, "Some Item");
+    basicListView->SetItem(0, 2, "This is an item");
+
+    basicListView->InsertItem(1, "456");
+    basicListView->SetItem(1, 1, "Other Item");
+    basicListView->SetItem(1, 2, "A different item");
+
+    basicListView->InsertItem(2, "102");
+    basicListView->SetItem(2, 1, "Another Item");
+    basicListView->SetItem(2, 2, "The best one!");
 }
