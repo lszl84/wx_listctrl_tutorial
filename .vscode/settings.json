@@ -3,5 +3,13 @@
         "editor.defaultFormatter": "ms-vscode.cpptools",
         "editor.tabSize": 4,
         "editor.formatOnSave": true
+    },
+    "files.associations": {
+        "string_view": "cpp",
+        "string": "cpp",
+        "chrono": "cpp",
+        "vector": "cpp",
+        "limits": "cpp",
+        "istream": "cpp"
     }
 }

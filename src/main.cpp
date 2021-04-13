@@ -5,8 +5,18 @@
 #include <vector>
 #include <unordered_set>
 
+#include <fstream>
+#include <filesystem>
+
 #include "itemdata.h"
 #include "simplevirtuallistcontrol.h"
+
+// Quick and dirty way to localize the CSV file using a variable set by CMake.
+// Do *NOT* use this method to locate application files in a production release,
+// use proper resource management instead (see wxStandardPaths)
+#ifndef CSV_DIR
+#define CSV_DIR "."
+#endif
 
 class MyApp : public wxApp
 {
@@ -48,9 +58,19 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
 
 void MyFrame::populateListView()
 {
-    basicListView->items.push_back({123, "Some Item", "This is an item"});
-    basicListView->items.push_back({456, "Other Item", "A different item"});
-    basicListView->items.push_back({102, "Another Item", "The best one!"});
+    std::ifstream stream(std::string(CSV_DIR) + "/aapl-1d.csv"); // should be copied by CMake to the bin directory
+
+    // ignore header
+    stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+    while (stream)
+    {
+        auto item = ItemData::fromCsvLine(stream);
+        if (!item.date.empty())
+        {
+            basicListView->items.push_back(item);
+        }
+    }
 
     basicListView->RefreshAfterUpdate();
 }

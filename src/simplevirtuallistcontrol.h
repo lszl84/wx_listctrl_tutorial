@@ -13,12 +13,16 @@ public:
     SimpleVirtualListControl(wxWindow *parent, const wxWindowID id, const wxPoint &pos, const wxSize &size)
         : wxListCtrl(parent, id, pos, size, wxLC_REPORT | wxLC_VIRTUAL)
     {
-        this->AppendColumn("ID");
-        this->AppendColumn("Name");
-        this->AppendColumn("Description");
-        this->SetColumnWidth(0, 80);
-        this->SetColumnWidth(1, 120);
-        this->SetColumnWidth(2, 600);
+        this->AppendColumn("Date");
+        this->AppendColumn("Low");
+        this->AppendColumn("High");
+        this->AppendColumn("Open");
+        this->AppendColumn("Close");
+        this->AppendColumn("Volume");
+        this->AppendColumn("IVR");
+
+        this->SetColumnWidth(0, 180);
+        this->SetColumnWidth(5, 100);
     }
 
     virtual wxString OnGetItemText(long index, long column) const wxOVERRIDE
@@ -28,11 +32,19 @@ public:
         switch (column)
         {
         case 0:
-            return std::to_string(item.id);
+            return item.date;
         case 1:
-            return item.name;
+            return wxString::Format("%.2f", item.low);
         case 2:
-            return item.description;
+            return wxString::Format("%.2f", item.high);
+        case 3:
+            return wxString::Format("%.2f", item.open);
+        case 4:
+            return wxString::Format("%.2f", item.close);
+        case 5:
+            return wxString::Format("%.0f", item.volume);
+        case 6:
+            return wxString::Format("%d", item.ivr);
         default:
             return "";
         }
