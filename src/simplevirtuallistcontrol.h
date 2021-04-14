@@ -25,8 +25,27 @@ public:
         this->SetColumnWidth(5, 100);
 
         this->Bind(wxEVT_LIST_COL_CLICK, [this](wxListEvent &evt) {
+            auto selectedIndex = getFirstSelectedIndex();
+            std::string selectedDate;
+
+            if (selectedIndex != -1)
+            {
+                selectedDate = this->items[selectedIndex].date;
+
+                // deselecting old index
+                this->SetItemState(selectedIndex, 0, wxLIST_STATE_SELECTED);
+            }
+
             this->sortByColumn(evt.GetColumn());
             this->RefreshAfterUpdate();
+
+            if (selectedIndex != -1)
+            {
+                auto indexToSelect = findIndexOfDate(selectedDate);
+                this->SetItemState(indexToSelect, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+                this->EnsureVisible(indexToSelect);
+            }
+
             this->sortAscending = !this->sortAscending;
         });
     }
@@ -97,5 +116,15 @@ private:
                 return false;
             }
         });
+    }
+
+    long getFirstSelectedIndex()
+    {
+        return GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+    }
+
+    long findIndexOfDate(std::string date)
+    {
+        return std::find_if(items.begin(), items.end(), [date](ItemData i) { return i.date == date; }) - items.begin();
     }
 };
