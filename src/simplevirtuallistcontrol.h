@@ -23,6 +23,12 @@ public:
 
         this->SetColumnWidth(0, 180);
         this->SetColumnWidth(5, 100);
+
+        this->Bind(wxEVT_LIST_COL_CLICK, [this](wxListEvent &evt) {
+            this->sortByColumn(evt.GetColumn());
+            this->RefreshAfterUpdate();
+            this->sortAscending = !this->sortAscending;
+        });
     }
 
     virtual wxString OnGetItemText(long index, long column) const wxOVERRIDE
@@ -57,4 +63,39 @@ public:
     }
 
     std::vector<ItemData> items;
+
+private:
+    bool sortAscending = true;
+
+    void sortByColumn(int column)
+    {
+        // C++14 generic lambda
+        static auto genericCompare = [](auto i1, auto i2, bool ascending) {
+            return ascending ? i1 < i2 : i1 > i2;
+        };
+
+        bool ascending = this->sortAscending;
+
+        std::sort(items.begin(), items.end(), [column, ascending](ItemData i1, ItemData i2) {
+            switch (column)
+            {
+            case 0:
+                return genericCompare(i1.date, i2.date, ascending);
+            case 1:
+                return genericCompare(i1.low, i2.low, ascending);
+            case 2:
+                return genericCompare(i1.high, i2.high, ascending);
+            case 3:
+                return genericCompare(i1.open, i2.open, ascending);
+            case 4:
+                return genericCompare(i1.close, i2.close, ascending);
+            case 5:
+                return genericCompare(i1.volume, i2.volume, ascending);
+            case 6:
+                return genericCompare(i1.ivr, i2.ivr, ascending);
+            default:
+                return false;
+            }
+        });
+    }
 };
