@@ -87,7 +87,7 @@ std::vector<ItemData> MyFrame::readItemsFromCsv()
 
 void MyFrame::populateVirtualListView()
 {
-    virtualListView->items = items;
+    virtualListView->setItems(items);
     virtualListView->RefreshAfterUpdate();
 }
 

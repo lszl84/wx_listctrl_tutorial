@@ -4,6 +4,7 @@
 #include <wx/listctrl.h>
 
 #include <vector>
+#include <numeric>
 
 #include "itemdata.h"
 
@@ -25,25 +26,25 @@ public:
         this->SetColumnWidth(5, 100);
 
         this->Bind(wxEVT_LIST_COL_CLICK, [this](wxListEvent &evt) {
-            auto selectedIndex = getFirstSelectedIndex();
-            std::string selectedDate;
+            auto selectedListIndex = getFirstSelectedIndex();
+            long selectedDataIndex;
 
-            if (selectedIndex != -1)
+            if (selectedListIndex != -1)
             {
-                selectedDate = this->items[selectedIndex].date;
+                selectedDataIndex = this->orderedIndices[selectedListIndex];
 
                 // deselecting old index
-                this->SetItemState(selectedIndex, 0, wxLIST_STATE_SELECTED);
+                this->SetItemState(selectedListIndex, 0, wxLIST_STATE_SELECTED);
             }
 
             this->sortByColumn(evt.GetColumn());
             this->RefreshAfterUpdate();
 
-            if (selectedIndex != -1)
+            if (selectedListIndex != -1)
             {
-                auto indexToSelect = findIndexOfDate(selectedDate);
-                this->SetItemState(indexToSelect, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
-                this->EnsureVisible(indexToSelect);
+                auto listIndexToSelect = findIndexOfDataIndex(selectedDataIndex);
+                this->SetItemState(listIndexToSelect, wxLIST_STATE_SELECTED, wxLIST_STATE_SELECTED);
+                this->EnsureVisible(listIndexToSelect);
             }
 
             this->sortAscending = !this->sortAscending;
@@ -52,7 +53,7 @@ public:
 
     virtual wxString OnGetItemText(long index, long column) const wxOVERRIDE
     {
-        ItemData item = items[index];
+        ItemData item = items[orderedIndices[index]];
 
         switch (column)
         {
@@ -77,14 +78,23 @@ public:
 
     void RefreshAfterUpdate()
     {
-        this->SetItemCount(items.size());
+        this->SetItemCount(orderedIndices.size());
         this->Refresh();
     }
 
-    std::vector<ItemData> items;
+    void setItems(std::vector<ItemData> itemsToSet)
+    {
+        this->items = itemsToSet;
+
+        this->orderedIndices = std::vector<long>(items.size());
+        std::iota(orderedIndices.begin(), orderedIndices.end(), 0);
+    }
 
 private:
     bool sortAscending = true;
+
+    std::vector<ItemData> items;
+    std::vector<long> orderedIndices;
 
     void sortByColumn(int column)
     {
@@ -95,7 +105,10 @@ private:
 
         bool ascending = this->sortAscending;
 
-        std::sort(items.begin(), items.end(), [column, ascending](ItemData i1, ItemData i2) {
+        std::sort(orderedIndices.begin(), orderedIndices.end(), [this, column, ascending](long index1, long index2) {
+            auto i1 = this->items[index1];
+            auto i2 = this->items[index2];
+
             switch (column)
             {
             case 0:
@@ -123,8 +136,8 @@ private:
         return GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     }
 
-    long findIndexOfDate(std::string date)
+    long findIndexOfDataIndex(long dataIndex)
     {
-        return std::find_if(items.begin(), items.end(), [date](ItemData i) { return i.date == date; }) - items.begin();
+        return std::find(orderedIndices.begin(), orderedIndices.end(), dataIndex) - orderedIndices.begin();
     }
 };
