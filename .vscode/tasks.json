@@ -26,6 +26,21 @@
                 "-S.",
                 "-Bbuild"
             ]
+        },
+        {
+            "label": "Install with CMake",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--install",
+                "build",
+                "--config",
+                "Debug"
+            ],
+            "group": "build",
+            "dependsOn": [
+                "Build with CMake"
+            ]
         }
     ]
 }

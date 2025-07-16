@@ -1,6 +1,7 @@
 #include <wx/wx.h>
 #include <wx/listctrl.h>
 #include <wx/stopwatch.h>
+#include <wx/stdpaths.h>
 
 #include <string>
 #include <vector>
@@ -66,7 +67,38 @@ MyFrame::MyFrame(const wxString &title, const wxPoint &pos, const wxSize &size)
 
 std::vector<ItemData> MyFrame::readItemsFromCsv()
 {
-    std::ifstream stream(std::string(CSV_DIR) + "/aapl-1d.csv"); // should be copied by CMake to the bin directory
+    std::string csvPath;
+
+    // Try multiple locations for the CSV file
+    std::vector<std::string> possiblePaths = {
+        std::string(CSV_DIR) + "/aapl-1d.csv", // Build directory
+        "aapl-1d.csv",                         // Current directory
+        "./aapl-1d.csv"                        // Explicit current directory
+    };
+
+#ifdef __APPLE__
+    // On macOS, try the bundle's Resources directory
+    wxStandardPaths &stdPaths = wxStandardPaths::Get();
+    wxString resourcesPath = stdPaths.GetResourcesDir();
+    possiblePaths.insert(possiblePaths.begin(), resourcesPath.ToStdString() + "/aapl-1d.csv");
+#endif
+
+    std::ifstream stream;
+    for (const auto &path : possiblePaths)
+    {
+        stream.open(path);
+        if (stream.is_open())
+        {
+            csvPath = path;
+            break;
+        }
+    }
+
+    if (!stream.is_open())
+    {
+        wxMessageBox("Could not find aapl-1d.csv data file", "Error", wxOK | wxICON_ERROR);
+        return {};
+    }
 
     // ignore header
     stream.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
@@ -146,10 +178,10 @@ void MyFrame::setupLayout()
     }
 
     switchButton = new wxButton(this, wxID_ANY, buttonLabel);
-    switchButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e) {
+    switchButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent &e)
+                       {
         this->useVirtual = !this->useVirtual;
-        setupLayout();
-    });
+        setupLayout(); });
 
     auto sizer = new wxBoxSizer(wxVERTICAL);
     sizer->Add(useVirtual ? virtualListView : plainListView, 1, wxALL | wxEXPAND, 0);

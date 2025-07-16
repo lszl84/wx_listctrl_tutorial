@@ -39,3 +39,28 @@ add_custom_command(
                 ${CMAKE_CURRENT_BINARY_DIR}/aapl-1d.csv)
 
 add_compile_definitions(CSV_DIR="${CMAKE_CURRENT_BINARY_DIR}")
+
+# Install configuration
+if (APPLE)
+    # Install the macOS bundle
+    install(TARGETS main
+            BUNDLE DESTINATION .
+            RUNTIME DESTINATION .)
+    
+    # Install the CSV data file into the bundle's Resources directory
+    install(FILES ${CMAKE_SOURCE_DIR}/../data/aapl-1d.csv
+            DESTINATION main.app/Contents/Resources)
+else()
+    # Install the executable
+    install(TARGETS main
+            RUNTIME DESTINATION bin)
+    
+    # Install the CSV data file alongside the executable
+    install(FILES ${CMAKE_SOURCE_DIR}/../data/aapl-1d.csv
+            DESTINATION bin)
+endif()
+
+# Set proper permissions for the executable
+if (UNIX AND NOT APPLE)
+    install(CODE "execute_process(COMMAND chmod +x \${CMAKE_INSTALL_PREFIX}/bin/main)")
+endif()
